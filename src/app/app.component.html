@@ -1,0 +1,209 @@
+<div class="min-h-screen font-sans select-none overflow-hidden relative text-white transition-all duration-500" 
+     style="background-image: url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1920&auto=format&fit=crop'); background-size: cover; background-position: center;"
+     [ngClass]="view === 'BATTLE' ? '' : 'bg-gray-900'">
+     
+  <div *ngIf="view === 'BATTLE'" class="absolute inset-0 bg-black/50 z-0 backdrop-blur-[2px]"></div>
+
+  <div *ngIf="view === 'BATTLE'">
+    <div class="firefly" style="--x: 100px; --y: -200px; animation-duration: 8s;"></div>
+    <div class="firefly" style="--x: -200px; --y: -300px; animation-duration: 12s; animation-delay: 1s;"></div>
+    <div class="firefly" style="--x: 300px; --y: -100px; animation-duration: 10s; animation-delay: 2s;"></div>
+    <div class="firefly" style="--x: -400px; --y: 100px; animation-duration: 15s; animation-delay: 0.5s;"></div>
+    <div class="firefly" style="--x: 0px; --y: -250px; animation-duration: 9s; animation-delay: 3s;"></div>
+  </div>
+
+  <div *ngIf="view === 'MENU'" class="min-h-screen flex flex-col items-center justify-center p-4 relative z-20 py-10 bg-gray-900/90">
+    <h1 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 to-red-600 tracking-tighter mb-2 filter drop-shadow-lg animate-[bounce_3s_infinite]">
+      POKÉMON
+    </h1>
+    <h2 class="text-xl md:text-2xl font-bold text-white mb-8 tracking-[0.5em] uppercase">Battle Arena</h2>
+
+    <div class="mb-6 w-full max-w-md">
+      <label class="text-xs text-blue-400 font-bold ml-2">TU ALIAS</label>
+      <input [(ngModel)]="playerName" placeholder="EJ: ASH KETCHUM" 
+             class="w-full bg-slate-800 text-white text-center font-bold text-xl py-3 rounded-xl border-2 border-blue-600 focus:outline-none uppercase">
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8 w-full max-w-6xl items-start">
+      <div class="w-full lg:w-2/3 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50 backdrop-blur-sm">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-blue-400">🛡️ TU EQUIPO</h3>
+          <button (click)="generateRandomTeam()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg transition-colors flex items-center gap-2">
+            <span>🎲</span> ALEATORIZAR
+          </button>
+        </div>
+        <div class="grid grid-cols-3 md:grid-cols-5 gap-4">
+          <div *ngFor="let poke of myTeam; let i = index" 
+               class="holo-card relative group bg-slate-900 rounded-xl p-2 border border-slate-700 cursor-pointer overflow-hidden h-36 flex flex-col justify-between"
+               (click)="editingIndex = i; manualId = null">
+            <div class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-blue-600 text-white text-[10px] px-1 rounded transition-opacity">EDITAR</div>
+            <img [src]="poke.image" class="w-16 h-16 mx-auto object-contain z-10 relative">
+            
+            <span class="text-[9px] px-2 py-0.5 rounded-full uppercase font-bold tracking-widest mt-1 mx-auto text-center block w-max z-10 relative"
+                  [ngClass]="getTypeColor(poke.type)">
+              {{ poke.type }}
+            </span>
+
+            <p class="text-center text-[10px] font-bold mt-1 truncate w-full z-10 relative">{{ poke.name | uppercase }}</p>
+            
+            <div *ngIf="editingIndex === i" class="absolute inset-0 bg-slate-950 z-20 flex flex-col items-center justify-center rounded-xl p-2 border-2 border-yellow-400" (click)="$event.stopPropagation()">
+              <img [src]="getPreviewImage()" class="w-12 h-12 object-contain mb-1 animate-bounce">
+              <input type="number" [(ngModel)]="manualId" class="w-full bg-black text-yellow-400 text-center text-sm rounded border border-gray-600 mb-2" placeholder="ID#">
+              <div class="flex gap-1 w-full">
+                <button (click)="changePokemon(i)" class="bg-green-600 text-[10px] px-1 py-1 rounded w-1/2">OK</button>
+                <button (click)="editingIndex = null" class="bg-red-600 text-[10px] px-1 py-1 rounded w-1/2">X</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full lg:w-1/3 bg-slate-800/80 p-8 rounded-3xl shadow-2xl border border-slate-700 backdrop-blur-md h-full flex flex-col justify-center gap-4">
+        <button (click)="playVsBot()" [disabled]="!playerName" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 transition-all hover:scale-105 active:scale-95">
+            <span>🤖</span> JUGAR SOLO (VS BOT)
+        </button>
+        <div class="relative text-center my-2"><span class="bg-slate-800 px-3 text-gray-400 text-xs">O JUGAR ONLINE</span></div>
+        <button (click)="createGame()" [disabled]="!playerName" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 transition-all hover:scale-105 active:scale-95">
+          <span>👑</span> CREAR SALA
+        </button>
+        <div class="flex gap-2">
+          <input [(ngModel)]="roomCode" placeholder="CÓDIGO" class="w-full bg-slate-900 text-white text-center py-3 rounded-xl border border-slate-600 uppercase tracking-widest">
+          <button (click)="joinGame()" [disabled]="!roomCode || !playerName" class="bg-green-600 hover:bg-green-500 disabled:bg-gray-700 text-white font-bold px-6 rounded-xl shadow-lg active:scale-95">ENTRAR</button>
+        </div>
+        <button (click)="openLeaderboard()" class="w-full border border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 mt-4 transition-all hover:scale-105">
+            <span>🏆</span> SALÓN DE LA FAMA
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="view === 'LOBBY'" class="h-screen flex flex-col items-center justify-center relative z-20 bg-gray-900/90">
+    <div class="text-center animate-pulse">
+      <h2 class="text-4xl font-bold text-white mb-4">ESPERANDO RIVAL...</h2>
+      <div class="bg-black/50 p-6 rounded-2xl border-2 border-dashed border-yellow-500 inline-block mb-8">
+        <span class="text-6xl font-mono text-yellow-400 tracking-widest font-black select-text">{{ roomCode }}</span>
+      </div>
+      <br>
+      <button (click)="quitGame(true)" class="text-red-500 underline text-sm hover:text-red-400 cursor-pointer">Cancelar y Salir</button>
+    </div>
+  </div>
+
+  <div *ngIf="view === 'LEADERBOARD'" class="min-h-screen flex flex-col items-center justify-center p-4 relative z-50 bg-black/90">
+    <div class="bg-slate-900 border border-yellow-500 rounded-3xl p-8 max-w-2xl w-full">
+        <h2 class="text-4xl font-black text-center text-yellow-400 mb-8 uppercase">🏆 Salón de la Fama</h2>
+        <div class="overflow-y-auto max-h-[60vh] custom-scrollbar">
+            <table class="w-full text-left">
+                <thead class="text-xs text-gray-500 uppercase border-b border-gray-800">
+                    <tr><th class="py-3 px-4">Entrenador</th><th class="py-3 px-4 text-right">Fecha</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+                    <tr *ngFor="let score of highScores" class="hover:bg-white/5">
+                        <td class="py-4 px-4 font-bold text-white text-lg">{{ score.player_name }}</td>
+                        <td class="py-4 px-4 text-right text-gray-400 text-xs">{{ score.date | date:'short' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <button (click)="view = 'MENU'" class="w-full mt-8 bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 rounded-xl transition-all">VOLVER</button>
+    </div>
+  </div>
+
+  <div *ngIf="view === 'BATTLE'" class="min-h-screen p-4 md:p-8 relative z-10">
+    
+    <div *ngIf="winner" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center animate-[fadeIn_0.5s_ease-out]">
+        <h1 class="text-7xl md:text-9xl font-black mb-6 tracking-tighter" [ngClass]="winner === 'VICTORIA' ? 'text-green-500' : 'text-red-600'">{{ winner }}</h1>
+        <p class="text-gray-400 mb-8" *ngIf="winner === 'VICTORIA'">¡Puntaje guardado!</p>
+        <button (click)="quitGame(true)" class="px-8 py-4 bg-white text-black font-black text-xl rounded-full hover:scale-110 transition-transform">VOLVER AL MENÚ</button>
+    </div>
+
+    <header class="flex justify-between items-center mb-6 max-w-7xl mx-auto backdrop-blur-xl bg-black/40 p-4 rounded-2xl border border-white/10 shadow-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+        <span class="text-sm font-bold font-mono text-green-400 drop-shadow-md uppercase tracking-wider">{{ gameMode }} | {{ playerName }}</span>
+      </div>
+      
+      <div class="flex gap-3">
+        <button (click)="toggleMusic()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition-all shadow-lg hover:shadow-blue-500/50 active:scale-95">
+          🎵 MÚSICA
+        </button>
+        <button (click)="quitGame(false)" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition-all shadow-lg hover:shadow-red-500/50 active:scale-95">
+          👋 SALIR
+        </button>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto space-y-6">
+      <div class="flex justify-center gap-2">
+        <div *ngFor="let poke of enemyTeam" class="w-14 h-14 bg-black/60 rounded border border-red-900/50 p-1 relative backdrop-blur-sm transition-all"
+             [class.opacity-50]="poke.hp <= 0" [class.grayscale]="poke.hp <= 0" [class.border-red-500]="poke.id === enemyPokemon?.id">
+          <div *ngIf="poke.hp <= 0" class="absolute inset-0 flex items-center justify-center z-10 animate-[bounce_1s]"><span class="text-red-600 font-bold text-4xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">❌</span></div>
+          <img [src]="poke.image" class="w-full h-full object-contain">
+        </div>
+      </div>
+
+      <div *ngIf="myPokemon && enemyPokemon" class="relative bg-slate-900/70 rounded-[2.5rem] p-6 md:p-10 border border-slate-500/30 shadow-2xl backdrop-blur-xl overflow-hidden">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
+          
+          <div class="text-center w-full md:w-1/3 order-2 md:order-1 relative group">
+            <h2 class="text-3xl font-black text-white italic transform -skew-x-6 mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wider">{{ myPokemon.name | uppercase }}</h2>
+            <div class="w-full bg-gray-900/80 rounded-full h-5 border-2 border-gray-700 overflow-hidden relative shadow-inner">
+               <div class="absolute inset-0 bg-white/30 animate-pulse z-20" *ngIf="playerDamaged"></div>
+               <div class="h-full transition-all duration-700 ease-out bg-gradient-to-r from-green-500 to-green-400" [style.width.%]="(myPokemon.hp / myPokemon.maxHp) * 100"
+                    [ngClass]="{'from-yellow-500 to-yellow-400': (myPokemon.hp / myPokemon.maxHp) < 0.5, 'from-red-600 to-red-500': (myPokemon.hp / myPokemon.maxHp) < 0.2}"></div>
+            </div>
+            <span class="text-xs font-bold text-gray-300 mt-1 block">{{ myPokemon.hp }} / {{ myPokemon.maxHp }} HP</span>
+            
+            <div class="relative h-56 w-56 mx-auto mt-6 animate-[bounce_4s_infinite_ease-in-out]" [ngClass]="{'animate-attack-right': animatingAttack}">
+              <img [src]="myPokemon.image" [class.animate-shake]="playerDamaged" class="w-full h-full object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)] transition-all duration-300 group-hover:scale-105">
+              <div *ngIf="floatingTextPlayer" [ngClass]="floatingClassPlayer" class="absolute top-10 left-1/2 -translate-x-1/2 text-5xl font-black animate-float-up z-50 drop-shadow-[0_2px_2px_rgba(0,0,0,1)] text-center w-full">{{ floatingTextPlayer }}</div>
+            </div>
+          </div>
+
+          <div class="w-full md:w-1/3 order-3 md:order-2 flex flex-col gap-4 relative z-20">
+            <div class="bg-black/60 rounded-2xl p-4 h-40 overflow-y-auto font-mono text-xs border border-white/10 shadow-inner flex flex-col-reverse backdrop-blur-md custom-scrollbar">
+               <div *ngFor="let log of battleLog" class="text-gray-300 mb-1 pb-1 border-b border-white/5 last:border-0">
+                 <span class="text-green-400 font-bold">></span> {{ log }}
+               </div>
+            </div>
+
+            <div *ngIf="currentTurn === myPlayerId && !winner" class="grid grid-cols-2 gap-3 animate-[fadeIn_0.3s_ease-out]">
+              <button *ngFor="let move of myPokemon?.moves" (click)="attack(move.name)"
+                      class="bg-gradient-to-br from-slate-800 to-slate-900 hover:from-red-600 hover:to-red-800 text-white py-4 rounded-xl font-bold uppercase text-xs md:text-sm transition-all border border-slate-600 hover:border-red-400 shadow-lg hover:shadow-red-500/30 active:scale-95 truncate px-2 tracking-wider">
+                {{ move.name }}
+              </button>
+            </div>
+
+            <button *ngIf="currentTurn !== myPlayerId && !winner" disabled class="w-full py-5 rounded-2xl font-black text-xl shadow-xl bg-gray-800 text-gray-500 opacity-50 cursor-not-allowed tracking-widest flex items-center justify-center gap-2">
+              ⏳ ESPERANDO RIVAL...
+            </button>
+            <button *ngIf="winner" disabled class="w-full py-5 rounded-2xl font-black text-xl shadow-xl bg-gray-800 text-white tracking-widest">
+              COMBATE FINALIZADO
+            </button>
+          </div>
+
+          <div class="text-center w-full md:w-1/3 order-1 md:order-3 relative group">
+            <h2 class="text-2xl font-black text-red-400 italic transform -skew-x-6 mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wider">{{ enemyPokemon.name | uppercase }}</h2>
+            <div class="w-full bg-gray-900/80 rounded-full h-5 border-2 border-gray-700 overflow-hidden relative shadow-inner">
+               <div class="absolute inset-0 bg-white/30 animate-pulse z-20" *ngIf="animatingDamage"></div> 
+               <div class="h-full transition-all duration-700 ease-out bg-gradient-to-r from-red-600 to-red-500" [style.width.%]="(enemyPokemon.hp / enemyPokemon.maxHp) * 100"></div>
+            </div>
+             <span class="text-xs font-bold text-gray-500 mt-1 block opacity-0">.</span>
+            <div class="relative h-48 w-48 mx-auto mt-6 animate-[bounce_4s_infinite_ease-in-out] animation-delay-500">
+              <img [src]="enemyPokemon.image" [class.animate-shake]="animatingDamage" class="w-full h-full object-contain grayscale opacity-90 transition-all duration-300 group-hover:scale-105 group-hover:grayscale-0 group-hover:opacity-100 drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]">
+              <div *ngIf="floatingTextEnemy" [ngClass]="floatingClassEnemy" class="absolute top-10 left-1/2 -translate-x-1/2 text-5xl font-black animate-float-up z-50 drop-shadow-[0_2px_2px_rgba(255,0,0,0.8)] text-center w-full">{{ floatingTextEnemy }}</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      
+      <div class="flex justify-center gap-4 mt-8">
+        <div *ngFor="let poke of myTeam" class="w-20 h-20 bg-black/60 rounded-2xl border-2 transition-all duration-300 p-2 relative backdrop-blur-sm cursor-pointer hover:scale-105"
+             [ngClass]="poke.id === myPokemon?.id ? 'border-blue-500 shadow-[0_0_15px_#3b82f6] scale-110' : 'border-slate-700 opacity-70 hover:opacity-100 hover:border-slate-500'">
+          <div *ngIf="poke.hp <= 0" class="absolute inset-0 flex items-center justify-center z-10 animate-[bounce_1s]"><span class="text-red-600 font-bold text-5xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">❌</span></div>
+          <img [src]="poke.image" class="w-full h-full object-contain drop-shadow-lg" [class.grayscale]="poke.hp <= 0">
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
